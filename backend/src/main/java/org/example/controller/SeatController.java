@@ -34,23 +34,24 @@ public class SeatController {
     // Initialize seats (one-time)
     @PostMapping("/initialize")
     public ResponseEntity<String> initializeSeats() {
+        seatService.deleteAllSeats(); // clears existing seats
+
         String[] rows = {"A", "B", "C", "D", "E"};
         int totalSeats = 0;
 
         for (String row : rows) {
             for (int i = 1; i <= 10; i++) {
                 String seatNumber = row + i;
-                if (seatService.getSeatByNumber(seatNumber) == null) {
-                    Seat seat = new Seat();
-                    seat.setSeatNumber(seatNumber);
-                    seat.setBooked(false);
-                    seatService.saveSeat(seat);
-                    totalSeats++;
-                }
+                Seat seat = new Seat();
+                seat.setSeatNumber(seatNumber);
+                seat.setBooked(false);
+                seatService.saveSeat(seat);
+                totalSeats++;
             }
         }
         return ResponseEntity.ok("✅ Initialized " + totalSeats + " seats successfully.");
     }
+
 
     // Book seats
     @PostMapping("/book")

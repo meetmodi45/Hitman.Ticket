@@ -35,7 +35,9 @@ public class SeatService {
     public void saveSeat(Seat seat) {
         seatRepository.save(seat);
     }
-
+    public void deleteAllSeats() {
+        seatRepository.deleteAll(); // this clears all seats
+    }
     // 🔹 Reset all seats every 3 hours (fixed schedule)
     @Scheduled(cron = "0 0 0/3 * * *")  // runs at 00:00, 03:00, 06:00 … 21:00
     public void resetSeatsEvery3Hours() {
