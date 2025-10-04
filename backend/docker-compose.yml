@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # Your Spring Boot Application
+  app:
+    build: .
+    container_name: ticket-app
+    ports:
+      - "8080:8080"
+    environment:
+      # This URL uses the service name 'postgres-db'
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/ticketdb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+    depends_on:
+      - postgres-db
+      - redis
+
+  # Your PostgreSQL Database
+  postgres-db:
+    image: postgres:15
+    container_name: postgres-container
+    environment:
+      - POSTGRES_DB=ticketdb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5433:5432" # Access the DB from your PC on port 5433
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Redis
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
