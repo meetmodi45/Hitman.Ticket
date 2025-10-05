@@ -8,16 +8,22 @@ services:
     ports:
       - "8080:8080"
     environment:
-      # This URL uses the service name 'postgres-db'
+      # PostgreSQL connection details
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/ticketdb
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
+      # ✅ Explicitly tell Spring Boot where Redis and RabbitMQ are
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - TZ=Asia/Kolkata
     depends_on:
       - postgres-db
       - redis
+      - rabbitmq
 
   # Your PostgreSQL Database
   postgres-db:
+    # ... (this section is correct, no changes needed)
     image: postgres:15
     container_name: postgres-container
     environment:
@@ -25,18 +31,30 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     ports:
-      - "5433:5432" # Access the DB from your PC on port 5433
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
   # Redis
   redis:
+    # ... (this section is correct, no changes needed)
     image: redis:7
     container_name: redis
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
+
+  # ✅ ADD THIS ENTIRE RABBITMQ SERVICE
+  rabbitmq:
+    image: rabbitmq:3.13-management # Using the management image is highly recommended
+    container_name: rabbitmq-broker
+    ports:
+      - "5672:5672"   # For your application to connect
+      - "15672:15672" # For you to access the web UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
 
 volumes:
   postgres_data:

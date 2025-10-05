@@ -34,9 +34,7 @@ const SeatSelection = () => {
         axios.get("http://localhost:8080/api/seats"),
         axios.get("http://localhost:8080/api/seats/locked"),
       ]);
-
       const lockedSeats = new Set(lockedRes.data);
-
       const transformedSeats = seatRes.data.reduce((acc, seat) => {
         if (seat.booked) acc[seat.seatNumber] = "booked";
         else if (lockedSeats.has(seat.seatNumber))
@@ -44,7 +42,6 @@ const SeatSelection = () => {
         else acc[seat.seatNumber] = "available";
         return acc;
       }, {});
-
       setSeatStates(transformedSeats);
     } catch (error) {
       console.error("Failed to fetch seat data:", error);
@@ -67,38 +64,34 @@ const SeatSelection = () => {
     }
   };
 
-  // 🔹 Updated handleSeatClick to call Redis select API
   const handleSeatClick = async (seatId) => {
     const currentState = seatStates[seatId];
-    if (currentState === "booked" || currentState === "locked") return;
+    if (currentState === "booked" || currentState === "locked-by-other") return;
 
-    try {
-      await axios.post(
-        "http://localhost:8080/api/seats/select",
-        { seatNumber: seatId },
-        { headers: { "Content-Type": "application/json" } }
-      );
-
-      // seat locked successfully, mark it as 'locked'
-      setSeatStates((prev) => ({ ...prev, [seatId]: "locked" }));
-    } catch (error) {
-      // If backend says "seat is being booked by another user"
-      if (
-        error.response?.data ===
-        "Seat is currently being booked by another user."
-      ) {
-        // mark this seat as locked-by-other immediately
-        setSeatStates((prev) => ({ ...prev, [seatId]: "locked-by-other" }));
+    if (currentState === "locked") {
+      try {
+        await axios.post("http://localhost:8080/api/seats/unlock", {
+          seatNumber: seatId,
+        });
+        setSeatStates((prev) => ({ ...prev, [seatId]: "available" }));
+      } catch (error) {
+        console.error("Failed to unlock seat:", error);
+        alert("Could not unlock seat. Please refresh.");
       }
+      return;
+    }
 
-      let errorMessage = "Unknown error";
-      if (error.response?.data) {
-        errorMessage =
-          typeof error.response.data === "string"
-            ? error.response.data
-            : JSON.stringify(error.response.data);
+    if (currentState === "available") {
+      try {
+        await axios.post("http://localhost:8080/api/seats/select", {
+          seatNumber: seatId,
+        });
+        setSeatStates((prev) => ({ ...prev, [seatId]: "locked" }));
+      } catch (error) {
+        console.error("Failed to lock seat:", error);
+        alert(error.response?.data || "Failed to select seat.");
+        fetchSeats();
       }
-      alert(errorMessage);
     }
   };
 
@@ -106,28 +99,29 @@ const SeatSelection = () => {
     const lockedSeats = Object.keys(seatStates).filter(
       (seatId) => seatStates[seatId] === "locked"
     );
-
-    // Unlock all locked seats in Redis
     for (const seatId of lockedSeats) {
       try {
-        await axios.post(
-          "http://localhost:8080/api/seats/unlock",
-          { seatNumber: seatId },
-          { headers: { "Content-Type": "application/json" } }
-        );
+        await axios.post("http://localhost:8080/api/seats/unlock", {
+          seatNumber: seatId,
+        });
       } catch (err) {
-        console.error("Failed to unlock seat in Redis:", seatId, err);
+        console.error("Failed to unlock seat:", seatId, err);
       }
     }
+    fetchSeats();
+  };
 
-    // Update frontend state
+  const handleBookingSuccess = () => {
     setSeatStates((prev) => {
-      const newStates = {};
-      Object.keys(prev).forEach((key) => {
-        newStates[key] = prev[key] === "locked" ? "available" : prev[key];
+      const newStates = { ...prev };
+      Object.keys(newStates).forEach((seat) => {
+        if (newStates[seat] === "locked") {
+          newStates[seat] = "booked";
+        }
       });
       return newStates;
     });
+    setIsModalOpen(false);
   };
 
   const renderRow = (row) => {
@@ -156,14 +150,13 @@ const SeatSelection = () => {
     (s) => s === "available"
   ).length;
   const bookedCount = Object.values(seatStates).filter(
-    (s) => s === "booked"
+    (s) => s === "booked" || s === "locked-by-other"
   ).length;
   const rows = ["A", "B", "C", "D", "E"];
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center px-4 py-6">
       <div className="w-full max-w-5xl space-y-8">
-        {/* Header */}
         <div className="text-center">
           <h1 className="text-white text-3xl font-semibold mb-6">
             Select Your Seats
@@ -193,8 +186,6 @@ const SeatSelection = () => {
             </div>
           </div>
         </div>
-
-        {/* Movie Screen */}
         <div>
           <div className="h-12 bg-gray-800 rounded-t-[100px] flex items-center justify-center">
             <span className="text-gray-300 text-sm tracking-[0.4em]">
@@ -202,8 +193,6 @@ const SeatSelection = () => {
             </span>
           </div>
         </div>
-
-        {/* Seats */}
         <div className="flex flex-col gap-2">
           {rows.map((row) => (
             <div
@@ -220,8 +209,6 @@ const SeatSelection = () => {
             </div>
           ))}
         </div>
-
-        {/* Actions */}
         {selectedCount > 0 && (
           <div className="flex justify-center gap-4">
             <button
@@ -239,18 +226,10 @@ const SeatSelection = () => {
           </div>
         )}
       </div>
-
-      {/* Booking Modal */}
       <BookingModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onBookingSuccess={() => {
-          // Mark seats as booked after payment success
-          selectedSeats.forEach((seat) => {
-            setSeatStates((prev) => ({ ...prev, [seat]: "booked" }));
-          });
-          setIsModalOpen(false);
-        }}
+        onClose={handleReset}
+        onBookingSuccess={handleBookingSuccess}
         userDetails={userDetails}
         handleInputChange={handleInputChange}
         selectedSeats={selectedSeats}
