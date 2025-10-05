@@ -7,6 +7,8 @@ services:
     container_name: ticket-app
     ports:
       - "8080:8080"
+    volumes:
+      - ./target/classes:/app/classes
     environment:
       # PostgreSQL connection details
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/ticketdb
