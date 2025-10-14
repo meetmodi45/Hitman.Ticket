@@ -12,6 +12,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.example.dto.AdminBookingDetailDTO;
 
 import java.net.MalformedURLException;
 import java.nio.file.Path;
@@ -115,6 +116,11 @@ public class SeatController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", "Booking failed: " + e.getMessage()));
         }
+    }
+    @GetMapping("/admin/booked-details")
+    public ResponseEntity<List<AdminBookingDetailDTO>> getBookedSeatDetails() {
+        List<AdminBookingDetailDTO> details = bookingService.getAllBookedSeatDetails();
+        return ResponseEntity.ok(details);
     }
 
     @GetMapping("/invoice/{bookingId}")

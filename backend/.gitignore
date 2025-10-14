@@ -34,4 +34,5 @@ Thumbs.db
 
 # Environment / secret files
 *.env
+application.properties
 application-*.properties
