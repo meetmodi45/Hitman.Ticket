@@ -10,17 +10,24 @@ public class BookingEventConsumer {
 
     // 1. Inject the InvoiceService to make it available here.
     private final InvoiceService invoiceService;
+    private final EmailService emailService;
 
     // 2. Update the constructor to accept the InvoiceService.
-    public BookingEventConsumer(InvoiceService invoiceService) {
+    public BookingEventConsumer(InvoiceService invoiceService, EmailService emailService) {
         this.invoiceService = invoiceService;
+        this.emailService = emailService;
     }
 
-    // --- NO CHANGES TO THE EMAIL HANDLER ---
     @RabbitListener(queues = RabbitMQConfig.EMAIL_QUEUE)
     public void handleEmailEvent(BookingEvent event) {
-        System.out.println("📬 EMAIL SERVICE: Received task for user: " + event.getEmail());
-        System.out.println("📬 ---> Sending email for booking ID: " + event.getBookingId());
+        System.out.println("📬 EMAIL_QUEUE: Received task, handing over to EmailService for booking ID: " + event.getBookingId());
+        try {
+            // This is the line that was missing!
+            emailService.sendBookingConfirmationEmail(event);
+        } catch (Exception e) {
+            System.err.println("Failed to process email event for booking ID " + event.getBookingId() + ": " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     // --- NO CHANGES TO THE SMS HANDLER ---
