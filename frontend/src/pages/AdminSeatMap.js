@@ -87,9 +87,7 @@ const AdminSeatMap = () => {
   useEffect(() => {
     const fetchAdminData = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:8080/api/seats/admin/booked-details"
-        );
+        const response = await axios.get("/api/seats/admin/booked-details");
         const bookedData = response.data;
 
         // Create a lookup map for fast access to booking details by seat number

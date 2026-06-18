@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  app:
+    # This is the only major change: use the pre-built image from ECR
+    image: 700633997060.dkr.ecr.ap-south-1.amazonaws.com/ticket-app:latest
+    container_name: ticket-app
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/ticketdb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - TZ=Asia/Kolkata
+    depends_on:
+      - postgres-db
+      - redis
+      - rabbitmq
+
+  postgres-db:
+    image: postgres:15
+    container_name: postgres-container
+    environment:
+      - POSTGRES_DB=ticketdb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: redis
+    volumes:
+      - redis_data:/data
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq-broker
+    ports:
+      - "15672:15672" # We only need the management port on the server
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -23,10 +23,7 @@ const BookingModal = ({
     };
 
     try {
-      const response = await axios.post(
-        "http://localhost:8080/api/seats/book",
-        bookingRequest
-      );
+      const response = await axios.post("/api/seats/book", bookingRequest);
       setNewBookingId(response.data.bookingId);
       setBookingConfirmed(true);
     } catch (error) {
@@ -60,7 +57,7 @@ const BookingModal = ({
       for (const seat of selectedSeats) {
         try {
           await axios.post(
-            "http://localhost:8080/api/seats/unlock",
+            "/api/seats/unlock",
             { seatNumber: seat },
             { headers: { "Content-Type": "application/json" } }
           );
@@ -73,8 +70,9 @@ const BookingModal = ({
   };
 
   const handleDownloadAndClose = () => {
+    const apiBase = axios.defaults.baseURL || "http://localhost:8080";
     window.open(
-      `http://localhost:8080/api/seats/invoice/${newBookingId}`,
+      `${apiBase}/api/seats/invoice/${newBookingId}`,
       "_blank"
     );
     onBookingSuccess();
