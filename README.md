@@ -7,11 +7,11 @@ A full-stack, modern ticket booking and seat selection platform. This applicatio
 Here is a glimpse of the application in action:
 
 <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-  <img src="frontend/public/images/1.png" alt="Screenshot 1" width="400" style="border: 1px solid #ddd; border-radius: 8px;" />
-  <img src="frontend/public/images/2.png" alt="Screenshot 2" width="400" style="border: 1px solid #ddd; border-radius: 8px;" />
-  <img src="frontend/public/images/3.png" alt="Screenshot 3" width="400" style="border: 1px solid #ddd; border-radius: 8px;" />
-  <img src="frontend/public/images/4.png" alt="Screenshot 4" width="400" style="border: 1px solid #ddd; border-radius: 8px;" />
-  <img src="frontend/public/images/5.png" alt="Screenshot 5" width="400" style="border: 1px solid #ddd; border-radius: 8px;" />
+  <img src="frontend/public/Images/1.png" alt="Screenshot 1" width="400" style="border: 1px solid #ddd; border-radius: 8px;" />
+  <img src="frontend/public/Images/2.png" alt="Screenshot 2" width="400" style="border: 1px solid #ddd; border-radius: 8px;" />
+  <img src="frontend/public/Images/3.png" alt="Screenshot 3" width="400" style="border: 1px solid #ddd; border-radius: 8px;" />
+  <img src="frontend/public/Images/4.png" alt="Screenshot 4" width="400" style="border: 1px solid #ddd; border-radius: 8px;" />
+  <img src="frontend/public/Images/5.png" alt="Screenshot 5" width="400" style="border: 1px solid #ddd; border-radius: 8px;" />
 </div>
 
 ## 🚀 Tech Stack
